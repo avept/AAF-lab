@@ -1,23 +1,26 @@
 #include "../include/CommandProcessor.h"
 #include "../include/Parser.h"
 
-void CommandProcessor::start()
-{
+void CommandProcessor::start() {
     std::cout << "OAA> ";
     
-    std::string input;
-    std::getline(std::cin, input);
-    while(true)
+    std::vector<std::string> commands = { "create tree;", "insert tree \"aa\";", "insert tree \"ab\";", "insert tree \"ac\";",
+                            "insert tree \"abc\";", "search tree where match \"a?*\" DESC;" };
+    for(const auto& it : commands)
     {
-        if(input.length() == 0) 
-            break;
+        try {
+            if(it.length() == 0) 
+                break;
 
-        Lexer lexer = Lexer(input);
-        Interpreter inter = Interpreter(lexer);
-        inter.command();
-        
-        std::cout << "OAA> ";
-        std::getline(std::cin, input);
+            Lexer lexer = Lexer(it);
+            Interpreter inter = Interpreter(lexer);
+            inter.command();
+            
+            std::cout << "OAA> ";
+        } catch(const std::exception& e) {
+            std::cerr << e.what() << '\n';
+            std::cout << "OAA> ";
+        }
     }
 }
 
@@ -69,22 +72,25 @@ void CommandProcessor::contains(const std::string& set_name, const std::string& 
     }
 }
 
-void CommandProcessor::search(const std::string& set_name, const std::string& search_type)
-{
-    if (m_tries.find(set_name) == m_tries.end())
-    {
-        std::cout << "Trie" << set_name << " not found." << std::endl;
+void CommandProcessor::search(const std::string& set_name, const std::string& search_type) {
+    if (m_tries.find(set_name) == m_tries.end()) {
+        std::cout << "Trie " << set_name << " not found." << std::endl;
         return;
     }
 
     std::cout << "Searching words in " << set_name << " in " << search_type << " order\n";
-    auto strings = m_tries[set_name].allStrings();
+    auto strings = m_tries[set_name].allStrings("", "");
 
-    for(const auto& it : strings)
-    {
+    if (search_type == "DESC") {
+        std::reverse(strings.begin(), strings.end());
+    }
+    
+    for (const auto& it : strings) {
         std::cout << it << std::endl;
     }
+
 }
+
 
 void CommandProcessor::between(const std::string& set_name, const std::string& from, const std::string& to, 
                 const std::string& order)
@@ -92,13 +98,21 @@ void CommandProcessor::between(const std::string& set_name, const std::string& f
     std::cout << "Searching words in " << set_name 
             << " from " << from << " to " << to << " in " << order << " order\n";
 
-    // if (m_tries.find(set_name) == m_tries.end())
-    // {
-    //     std::cout << "Trie" << set_name << " not found." << std::endl;
-    //     return;
-    // }
+    if (m_tries.find(set_name) == m_tries.end())
+    {
+         std::cout << "Trie" << set_name << " not found." << std::endl;
+        return;
+    }
 
-    // m_tries[set_name].between(from, to, order);
+    auto strings = m_tries[set_name].allStrings(from, to);
+    
+    if (order == "DESC") {
+        std::reverse(strings.begin(), strings.end());
+    }
+    
+    for (const auto& it : strings) {
+        std::cout << it << std::endl;
+    }
 }
 
 void CommandProcessor::match(const std::string& set_name, const std::string& pattern, const std::string& order)
@@ -106,11 +120,11 @@ void CommandProcessor::match(const std::string& set_name, const std::string& pat
     std::cout << "Searching words in " << set_name << " with the next pattern: " 
         << pattern << " in " << order << " order\n";
 
-    // if (m_tries.find(set_name) == m_tries.end())
-    // {
-    //     std::cout << "Trie" << set_name << " not found." << std::endl;
-    //     return;
-    // }
+    if (m_tries.find(set_name) == m_tries.end())
+    {
+        std::cout << "Trie" << set_name << " not found." << std::endl;
+        return;
+    }
 
-    // m_tries[set_name].match(pattern, order);
+    m_tries[set_name].match(pattern, order);
 }

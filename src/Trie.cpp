@@ -57,10 +57,11 @@ bool Trie::search(const std::string_view& word) const noexcept
     return false;
 }
 
-std::vector<std::string> Trie::allStrings() const noexcept
+std::vector<std::string> Trie::allStrings(const std::string from = "", const std::string to = "") const noexcept
 {
     std::vector<std::string> strings;
-    m_root->allStrings("", strings);
+    m_root->allStrings(from, to, "", strings);
+
     return strings;
 }
 
@@ -68,5 +69,21 @@ void Trie::print() const noexcept
 {
     std::string result;
     m_root->print(result, "", "");
+
     std::cout << result << std::endl;
+}
+void Trie::match(const std::string& pattern, const std::string& order) const noexcept
+{
+    std::vector<std::string> words;
+    m_root->match(0, "", words, pattern);
+
+    if(order == "DESC")
+    {
+        std::reverse(words.begin() , words.end());
+    }
+
+    for(const auto& it : words)
+    {
+        std::cout << it << std::endl;
+    }
 }
